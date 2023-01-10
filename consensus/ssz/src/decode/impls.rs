@@ -40,6 +40,7 @@ impl_decodable_for_uint!(u8, 8);
 impl_decodable_for_uint!(u16, 16);
 impl_decodable_for_uint!(u32, 32);
 impl_decodable_for_uint!(u64, 64);
+impl_decodable_for_uint!(u128, 128);
 
 #[cfg(target_pointer_width = "32")]
 impl_decodable_for_uint!(usize, 32);

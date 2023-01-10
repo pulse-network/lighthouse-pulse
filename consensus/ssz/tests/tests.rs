@@ -23,6 +23,13 @@ mod round_trip {
     }
 
     #[test]
+    fn u128() {
+        let items: Vec<u128> = vec![9998446744072000000000, 9998446744072000000000];
+
+        round_trip(items);
+    }
+
+    #[test]
     fn option_u16() {
         let items: Vec<Option<u16>> = vec![None, Some(2u16)];
 

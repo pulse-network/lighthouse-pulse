@@ -182,7 +182,7 @@ pub struct ProposerHeadInfo {
     /// for a new proposal *if* a re-org is decided on.
     pub parent_node: ProtoNode,
     /// The computed fraction of the active committee balance below which we can re-org.
-    pub re_org_weight_threshold: u64,
+    pub re_org_weight_threshold: u128,
     /// The current slot from fork choice's point of view, may lead the wall-clock slot by upto
     /// 500ms.
     pub current_slot: Slot,
@@ -241,8 +241,8 @@ pub enum DoNotReOrg {
         epochs_since_finalization: u64,
     },
     HeadNotWeak {
-        head_weight: u64,
-        re_org_weight_threshold: u64,
+        head_weight: u128,
+        re_org_weight_threshold: u128,
     },
     HeadNotLate,
     NotProposing,
@@ -467,7 +467,7 @@ impl ProtoArrayForkChoice {
         // Only re-org if the head's weight is less than the configured committee fraction.
         let head_weight = info.head_node.weight;
         let re_org_weight_threshold = info.re_org_weight_threshold;
-        let weak_head = head_weight < re_org_weight_threshold;
+        let weak_head = head_weight < re_org_weight_threshold as u128;
         if !weak_head {
             return Err(DoNotReOrg::HeadNotWeak {
                 head_weight,
@@ -594,7 +594,7 @@ impl ProtoArrayForkChoice {
 
                     // Restore the weight of the node, it would have been set to `0` in
                     // `apply_score_changes` when it was invalidated.
-                    let mut restored_weight: u64 = self
+                    let mut restored_weight: u128 = self
                         .votes
                         .0
                         .iter()
@@ -603,7 +603,8 @@ impl ProtoArrayForkChoice {
                             if vote.current_root == node.root {
                                 // Any voting validator that does not have a balance should be
                                 // ignored. This is consistent with `compute_deltas`.
-                                self.balances.effective_balances.get(validator_index)
+                                let copied_bal = self.balances.effective_balances.get(validator_index).copied().unwrap_or(0);
+                                Some(copied_bal as u128)
                             } else {
                                 None
                             }
@@ -734,7 +735,7 @@ impl ProtoArrayForkChoice {
     }
 
     /// Returns the weight of a given block.
-    pub fn get_weight(&self, block_root: &Hash256) -> Option<u64> {
+    pub fn get_weight(&self, block_root: &Hash256) -> Option<u128> {
         let block_index = self.proto_array.indices.get(block_root)?;
         self.proto_array
             .nodes
@@ -813,8 +814,8 @@ fn compute_deltas(
     old_balances: &[u64],
     new_balances: &[u64],
     equivocating_indices: &BTreeSet<u64>,
-) -> Result<Vec<i64>, Error> {
-    let mut deltas = vec![0_i64; indices.len()];
+) -> Result<Vec<i128>, Error> {
+    let mut deltas = vec![0_i128; indices.len()];
 
     for (val_index, vote) in votes.iter_mut().enumerate() {
         // There is no need to create a score change if the validator has never voted or both their
@@ -842,7 +843,7 @@ fn compute_deltas(
                     let delta = deltas
                         .get(current_delta_index)
                         .ok_or(Error::InvalidNodeDelta(current_delta_index))?
-                        .checked_sub(old_balance as i64)
+                        .checked_sub(old_balance as i128)
                         .ok_or(Error::DeltaOverflow(current_delta_index))?;
 
                     // Array access safe due to check on previous line.
@@ -873,7 +874,7 @@ fn compute_deltas(
                 let delta = deltas
                     .get(current_delta_index)
                     .ok_or(Error::InvalidNodeDelta(current_delta_index))?
-                    .checked_sub(old_balance as i64)
+                    .checked_sub(old_balance as i128)
                     .ok_or(Error::DeltaOverflow(current_delta_index))?;
 
                 // Array access safe due to check on previous line.
@@ -886,7 +887,7 @@ fn compute_deltas(
                 let delta = deltas
                     .get(next_delta_index)
                     .ok_or(Error::InvalidNodeDelta(next_delta_index))?
-                    .checked_add(new_balance as i64)
+                    .checked_add(new_balance as i128)
                     .ok_or(Error::DeltaOverflow(next_delta_index))?;
 
                 // Array access safe due to check on previous line.
@@ -1055,9 +1056,9 @@ mod test_compute_deltas {
 
     #[test]
     fn all_voted_the_same() {
-        const BALANCE: u64 = 42;
+        const BALANCE: u64 = 32000000000000000;
 
-        let validator_count: usize = 16;
+        let validator_count: usize = 577;
 
         let mut indices = HashMap::new();
         let mut votes = ElasticList::default();
@@ -1095,7 +1096,7 @@ mod test_compute_deltas {
             if i == 0 {
                 assert_eq!(
                     delta,
-                    BALANCE as i64 * validator_count as i64,
+                    BALANCE as i128 * validator_count as i128,
                     "zero'th root should have a delta"
                 );
             } else {
@@ -1113,9 +1114,9 @@ mod test_compute_deltas {
 
     #[test]
     fn different_votes() {
-        const BALANCE: u64 = 42;
+        const BALANCE: u64 = 32000000000000000;
 
-        let validator_count: usize = 16;
+        let validator_count: usize = 577;
 
         let mut indices = HashMap::new();
         let mut votes = ElasticList::default();
@@ -1151,7 +1152,7 @@ mod test_compute_deltas {
 
         for delta in deltas.into_iter() {
             assert_eq!(
-                delta, BALANCE as i64,
+                delta, BALANCE as i128,
                 "each root should have the same delta"
             );
         }
@@ -1166,9 +1167,9 @@ mod test_compute_deltas {
 
     #[test]
     fn moving_votes() {
-        const BALANCE: u64 = 42;
+        const BALANCE: u64 = 32000000000000000;
 
-        let validator_count: usize = 16;
+        let validator_count: usize = 577;
 
         let mut indices = HashMap::new();
         let mut votes = ElasticList::default();
@@ -1202,7 +1203,7 @@ mod test_compute_deltas {
             "deltas should have expected length"
         );
 
-        let total_delta = BALANCE as i64 * validator_count as i64;
+        let total_delta = BALANCE as i128 * validator_count as i128;
 
         for (i, delta) in deltas.into_iter().enumerate() {
             if i == 0 {
@@ -1228,7 +1229,7 @@ mod test_compute_deltas {
 
     #[test]
     fn move_out_of_tree() {
-        const BALANCE: u64 = 42;
+        const BALANCE: u64 = 32000000000000000;
 
         let mut indices = HashMap::new();
         let mut votes = ElasticList::default();
@@ -1268,7 +1269,7 @@ mod test_compute_deltas {
 
         assert_eq!(
             deltas[0],
-            0 - BALANCE as i64 * 2,
+            0 - BALANCE as i128 * 2,
             "the block should have lost both balances"
         );
 
@@ -1282,10 +1283,10 @@ mod test_compute_deltas {
 
     #[test]
     fn changing_balances() {
-        const OLD_BALANCE: u64 = 42;
+        const OLD_BALANCE: u64 = 32000000000000000;
         const NEW_BALANCE: u64 = OLD_BALANCE * 2;
 
-        let validator_count: usize = 16;
+        let validator_count: usize = 577;
 
         let mut indices = HashMap::new();
         let mut votes = ElasticList::default();
@@ -1323,13 +1324,13 @@ mod test_compute_deltas {
             if i == 0 {
                 assert_eq!(
                     delta,
-                    0 - OLD_BALANCE as i64 * validator_count as i64,
+                    0 - OLD_BALANCE as i128 * validator_count as i128,
                     "zero'th root should have a negative delta"
                 );
             } else if i == 1 {
                 assert_eq!(
                     delta,
-                    NEW_BALANCE as i64 * validator_count as i64,
+                    NEW_BALANCE as i128 * validator_count as i128,
                     "first root should have positive delta"
                 );
             } else {
@@ -1347,7 +1348,7 @@ mod test_compute_deltas {
 
     #[test]
     fn validator_appears() {
-        const BALANCE: u64 = 42;
+        const BALANCE: u64 = 32000000000000000;
 
         let mut indices = HashMap::new();
         let mut votes = ElasticList::default();
@@ -1384,12 +1385,12 @@ mod test_compute_deltas {
 
         assert_eq!(
             deltas[0],
-            0 - BALANCE as i64,
+            0 - BALANCE as i128,
             "block 1 should have only lost one balance"
         );
         assert_eq!(
             deltas[1],
-            2 * BALANCE as i64,
+            2 * BALANCE as i128,
             "block 2 should have gained two balances"
         );
 
@@ -1403,7 +1404,7 @@ mod test_compute_deltas {
 
     #[test]
     fn validator_disappears() {
-        const BALANCE: u64 = 42;
+        const BALANCE: u64 = 32000000000000000;
 
         let mut indices = HashMap::new();
         let mut votes = ElasticList::default();
@@ -1440,11 +1441,11 @@ mod test_compute_deltas {
 
         assert_eq!(
             deltas[0],
-            0 - BALANCE as i64 * 2,
+            0 - BALANCE as i128 * 2,
             "block 1 should have lost both balances"
         );
         assert_eq!(
-            deltas[1], BALANCE as i64,
+            deltas[1], BALANCE as i128,
             "block 2 should have only gained one balance"
         );
 
@@ -1458,8 +1459,8 @@ mod test_compute_deltas {
 
     #[test]
     fn validator_equivocates() {
-        const OLD_BALANCE: u64 = 42;
-        const NEW_BALANCE: u64 = 43;
+        const OLD_BALANCE: u64 = 32000000000000000;
+        const NEW_BALANCE: u64 = 33000000000000000;
 
         let mut indices = HashMap::new();
         let mut votes = ElasticList::default();
@@ -1497,11 +1498,11 @@ mod test_compute_deltas {
 
         assert_eq!(
             deltas[0],
-            -2 * OLD_BALANCE as i64,
+            -2 * OLD_BALANCE as i128,
             "block 1 should have lost two old balances"
         );
         assert_eq!(
-            deltas[1], NEW_BALANCE as i64,
+            deltas[1], NEW_BALANCE as i128,
             "block 2 should have gained one balance"
         );
 
