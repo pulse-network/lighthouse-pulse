@@ -89,7 +89,7 @@ pub struct ProtoNode {
     pub justified_checkpoint: Option<Checkpoint>,
     #[ssz(with = "four_byte_option_checkpoint")]
     pub finalized_checkpoint: Option<Checkpoint>,
-    pub weight: u64,
+    pub weight: u128,
     #[ssz(with = "four_byte_option_usize")]
     pub best_child: Option<usize>,
     #[ssz(with = "four_byte_option_usize")]
@@ -106,7 +106,7 @@ pub struct ProtoNode {
 #[derive(PartialEq, Debug, Encode, Decode, Serialize, Deserialize, Copy, Clone)]
 pub struct ProposerBoost {
     pub root: Hash256,
-    pub score: u64,
+    pub score: u128,
 }
 
 impl Default for ProposerBoost {
@@ -147,7 +147,7 @@ impl ProtoArray {
     #[allow(clippy::too_many_arguments)]
     pub fn apply_score_changes<E: EthSpec>(
         &mut self,
-        mut deltas: Vec<i64>,
+        mut deltas: Vec<i128>,
         justified_checkpoint: Checkpoint,
         finalized_checkpoint: Checkpoint,
         new_justified_balances: &JustifiedBalances,
@@ -190,8 +190,8 @@ impl ProtoArray {
 
             let mut node_delta = if execution_status_is_invalid {
                 // If the node has an invalid execution payload, reduce its weight to zero.
-                0_i64
-                    .checked_sub(node.weight as i64)
+                0_i128
+                    .checked_sub(node.weight as i128)
                     .ok_or(Error::InvalidExecutionDeltaOverflow(node_index))?
             } else {
                 deltas
@@ -209,7 +209,7 @@ impl ProtoArray {
                 && !execution_status_is_invalid
             {
                 node_delta = node_delta
-                    .checked_sub(self.previous_proposer_boost.score as i64)
+                    .checked_sub(self.previous_proposer_boost.score as i128)
                     .ok_or(Error::DeltaOverflow(node_index))?;
             }
             // If we find the node matching the current proposer boost root, increase
@@ -228,7 +228,7 @@ impl ProtoArray {
                     )
                     .ok_or(Error::ProposerBoostOverflow(node_index))?;
                     node_delta = node_delta
-                        .checked_add(proposer_score as i64)
+                        .checked_add(proposer_score as i128)
                         .ok_or(Error::DeltaOverflow(node_index))?;
                 }
             }
@@ -254,7 +254,7 @@ impl ProtoArray {
             } else {
                 node.weight = node
                     .weight
-                    .checked_add(node_delta as u64)
+                    .checked_add(node_delta as u128)
                     .ok_or(Error::DeltaOverflow(node_index))?;
             }
 
@@ -1054,16 +1054,16 @@ impl ProtoArray {
 pub fn calculate_committee_fraction<E: EthSpec>(
     justified_balances: &JustifiedBalances,
     proposer_score_boost: u64,
-) -> Option<u64> {
+) -> Option<u128> {
     let average_balance = justified_balances
         .total_effective_balance
-        .checked_div(justified_balances.num_active_validators)?;
+        .checked_div(justified_balances.num_active_validators as u128)?;
     let committee_size = justified_balances
         .num_active_validators
         .checked_div(E::slots_per_epoch())?;
-    let committee_weight = committee_size.checked_mul(average_balance)?;
+    let committee_weight = (committee_size as u128).checked_mul(average_balance)?;
     committee_weight
-        .checked_mul(proposer_score_boost)?
+        .checked_mul(proposer_score_boost as u128)?
         .checked_div(100)
 }
 
