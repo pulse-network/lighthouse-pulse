@@ -62,7 +62,7 @@ use types::{
     ProposerPreparationData, ProposerSlashing, RelativeEpoch, SignedAggregateAndProof,
     SignedBeaconBlock, SignedBlindedBeaconBlock, SignedBlsToExecutionChange,
     SignedContributionAndProof, SignedValidatorRegistrationData, SignedVoluntaryExit, Slot,
-    SyncCommitteeMessage, SyncContributionData,
+    SyncCommitteeMessage, SyncContributionData, Uint256,
 };
 use version::{
     add_consensus_version_header, execution_optimistic_finalized_fork_versioned_response,
@@ -2209,7 +2209,7 @@ pub fn serve<T: BeaconChainTypes>(
                                 .map(|parent| parent.root),
                             justified_epoch: node.justified_checkpoint.epoch,
                             finalized_epoch: node.finalized_checkpoint.epoch,
-                            weight: node.weight,
+                            weight: Uint256::from(node.weight),
                             validity: execution_status,
                             execution_block_hash: node
                                 .execution_status
