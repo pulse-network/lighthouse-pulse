@@ -952,6 +952,8 @@ pub struct Config {
     #[serde(with = "eth2_serde_utils::quoted_u64")]
     inactivity_score_recovery_rate: u64,
     #[serde(with = "eth2_serde_utils::quoted_u64")]
+    max_effective_balance: u64,
+    #[serde(with = "eth2_serde_utils::quoted_u64")]
     ejection_balance: u64,
     #[serde(with = "eth2_serde_utils::quoted_u64")]
     min_per_epoch_churn_limit: u64,
@@ -1087,6 +1089,7 @@ impl Config {
 
             inactivity_score_bias: spec.inactivity_score_bias,
             inactivity_score_recovery_rate: spec.inactivity_score_recovery_rate,
+            max_effective_balance: spec.max_effective_balance,
             ejection_balance: spec.ejection_balance,
             churn_limit_quotient: spec.churn_limit_quotient,
             min_per_epoch_churn_limit: spec.min_per_epoch_churn_limit,
@@ -1132,6 +1135,7 @@ impl Config {
             eth1_follow_distance,
             inactivity_score_bias,
             inactivity_score_recovery_rate,
+            max_effective_balance,
             ejection_balance,
             min_per_epoch_churn_limit,
             churn_limit_quotient,
@@ -1164,6 +1168,7 @@ impl Config {
             eth1_follow_distance,
             inactivity_score_bias,
             inactivity_score_recovery_rate,
+            max_effective_balance,
             ejection_balance,
             min_per_epoch_churn_limit,
             churn_limit_quotient,
