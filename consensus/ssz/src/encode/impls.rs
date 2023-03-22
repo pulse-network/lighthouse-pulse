@@ -31,6 +31,7 @@ impl_encodable_for_uint!(u8, 8);
 impl_encodable_for_uint!(u16, 16);
 impl_encodable_for_uint!(u32, 32);
 impl_encodable_for_uint!(u64, 64);
+impl_encodable_for_uint!(u128, 128);
 
 #[cfg(target_pointer_width = "32")]
 impl_encodable_for_uint!(usize, 32);
@@ -577,6 +578,15 @@ mod tests {
         assert_eq!(
             (!0_u64).as_ssz_bytes(),
             vec![255, 255, 255, 255, 255, 255, 255, 255]
+        );
+    }
+
+    #[test]
+    fn ssz_encode_u128() {
+        assert_eq!(u128::MAX.as_ssz_bytes(), vec![255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255]);
+        assert_eq!(
+            (!0_u128).as_ssz_bytes(),
+            vec![255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255]
         );
     }
 
