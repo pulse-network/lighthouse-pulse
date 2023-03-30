@@ -871,6 +871,16 @@ impl ChainSpec {
             domain_bls_to_execution_change: 10,
         }
     }
+
+    /// PulseChain specification.
+    pub fn pulsechain() -> Self {
+        let mut spec = Self::mainnet();
+        spec.config_name = Some("pulsechain".to_string());
+        spec.max_effective_balance =
+            option_wrapper(|| u64::checked_pow(2, 5)?.checked_mul(u64::checked_pow(10, 15)?))
+                .expect("calculation does not overflow");
+        spec
+    }
 }
 
 impl Default for ChainSpec {
@@ -951,8 +961,6 @@ pub struct Config {
     inactivity_score_bias: u64,
     #[serde(with = "eth2_serde_utils::quoted_u64")]
     inactivity_score_recovery_rate: u64,
-    #[serde(with = "eth2_serde_utils::quoted_u64")]
-    max_effective_balance: u64,
     #[serde(with = "eth2_serde_utils::quoted_u64")]
     ejection_balance: u64,
     #[serde(with = "eth2_serde_utils::quoted_u64")]
@@ -1049,6 +1057,7 @@ impl Config {
             "minimal" => Some(EthSpecId::Minimal),
             "mainnet" => Some(EthSpecId::Mainnet),
             "gnosis" => Some(EthSpecId::Gnosis),
+            "pulsechain" => Some(EthSpecId::PulseChain),
             _ => None,
         }
     }
@@ -1089,7 +1098,6 @@ impl Config {
 
             inactivity_score_bias: spec.inactivity_score_bias,
             inactivity_score_recovery_rate: spec.inactivity_score_recovery_rate,
-            max_effective_balance: spec.max_effective_balance,
             ejection_balance: spec.ejection_balance,
             churn_limit_quotient: spec.churn_limit_quotient,
             min_per_epoch_churn_limit: spec.min_per_epoch_churn_limit,
@@ -1135,7 +1143,6 @@ impl Config {
             eth1_follow_distance,
             inactivity_score_bias,
             inactivity_score_recovery_rate,
-            max_effective_balance,
             ejection_balance,
             min_per_epoch_churn_limit,
             churn_limit_quotient,
@@ -1168,7 +1175,6 @@ impl Config {
             eth1_follow_distance,
             inactivity_score_bias,
             inactivity_score_recovery_rate,
-            max_effective_balance,
             ejection_balance,
             min_per_epoch_churn_limit,
             churn_limit_quotient,
