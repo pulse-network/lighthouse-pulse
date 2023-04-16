@@ -1,6 +1,6 @@
 [package]
 name = "boot_node"
-version = "1.0.1"
+version = "2.0.0"
 authors = ["The PulseChain Team", "Sigma Prime <contact@sigmaprime.io>"]
 edition = "2021"
 
