@@ -1231,8 +1231,8 @@ pub struct ForkChoiceNode {
     pub parent_root: Option<Hash256>,
     pub justified_epoch: Option<Epoch>,
     pub finalized_epoch: Option<Epoch>,
-    #[serde(with = "eth2_serde_utils::quoted_u64")]
-    pub weight: u64,
+    #[serde(with = "eth2_serde_utils::quoted_u128")]
+    pub weight: u128,
     pub validity: Option<String>,
     pub execution_block_hash: Option<Hash256>,
 }

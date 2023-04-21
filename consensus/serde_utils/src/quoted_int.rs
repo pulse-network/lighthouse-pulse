@@ -161,6 +161,12 @@ pub mod quoted_i64 {
     define_mod!(i64);
 }
 
+pub mod quoted_u128 {
+    use super::*;
+
+    define_mod!(u128);
+}
+
 pub mod quoted_u256 {
     use super::*;
 
