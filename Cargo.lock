@@ -661,7 +661,7 @@ dependencies = [
 
 [[package]]
 name = "beacon_node"
-version = "4.2.0"
+version = "2.3.0"
 dependencies = [
  "beacon_chain",
  "clap",
@@ -840,7 +840,7 @@ dependencies = [
 
 [[package]]
 name = "boot_node"
-version = "4.2.0"
+version = "2.3.0"
 dependencies = [
  "beacon_node",
  "clap",
@@ -2456,6 +2456,7 @@ dependencies = [
 [[package]]
 name = "ethereum_ssz"
 version = "0.5.2"
+source = "git+https://gitlab.com/pulsechaincom/ethereum_ssz.git?tag=v0.5.2#8a980b5cd09d74d150446a007de45dab768efdfd"
 dependencies = [
  "ethereum-types 0.14.1",
  "itertools",
@@ -2465,6 +2466,7 @@ dependencies = [
 [[package]]
 name = "ethereum_ssz_derive"
 version = "0.5.2"
+source = "git+https://gitlab.com/pulsechaincom/ethereum_ssz.git?tag=v0.5.2#8a980b5cd09d74d150446a007de45dab768efdfd"
 dependencies = [
  "darling 0.13.4",
  "proc-macro2",
@@ -3893,7 +3895,7 @@ checksum = "830d08ce1d1d941e6b30645f1a0eb5643013d835ce3779a5fc208261dbe10f55"
 
 [[package]]
 name = "lcli"
-version = "4.2.0"
+version = "2.3.0"
 dependencies = [
  "account_utils",
  "beacon_chain",
@@ -4545,7 +4547,7 @@ dependencies = [
 
 [[package]]
 name = "lighthouse"
-version = "4.2.0"
+version = "2.3.0"
 dependencies = [
  "account_manager",
  "account_utils",
@@ -7666,6 +7668,7 @@ dependencies = [
 [[package]]
 name = "ssz_types"
 version = "0.5.2"
+source = "git+https://gitlab.com/pulsechaincom/ssz_types.git?tag=v0.5.2#bab8bf382abb61640d892f3a6f5ae19c23edc232"
 dependencies = [
  "arbitrary",
  "derivative",
